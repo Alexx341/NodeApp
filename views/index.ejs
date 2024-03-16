@@ -1,0 +1,59 @@
+<%- include ("_partial/_header.ejs"); %>
+<div class="main">
+    <div class="panel header">Kim jesteś i gdzie jesteś?</div>
+    <form class="panel" id="weatherForm" method="post" action="/index">
+        <input type="text" name="name" id="nameField" class="field" placeholder="Imię">
+        <input type="text" name="place" id="placeField" class="field" placeholder="Miejsce">
+        <input type="submit" class="button" value="Sprawdź pogodę">
+    </form>
+    <div id="responseDiv" class="panel"></div>
+
+    <h3>My Google Maps Demo</h3>
+    <div id="map"></div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJn-necCOTFpN-lncYjh5vi_Qr7-T4NIM&v=weekly"></script>
+<script>
+    async function initializeMap(latt, lngg) {
+        const position = { lat: latt, lng: lngg };
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 4,
+            center: position
+        });
+
+        new google.maps.Marker({
+            position: position,
+            map: map,
+            title: "Uluru"
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const weatherForm = document.getElementById('weatherForm');
+        const responseDiv = document.getElementById('responseDiv');
+
+        weatherForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('nameField').value;
+            const place = document.getElementById('placeField').value;
+
+            const response = await fetch('/index', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `name=${encodeURIComponent(name)}&place=${encodeURIComponent(place)}`
+            });
+
+            const responseData = await response.json();
+            responseDiv.innerHTML = responseData.message;
+
+            if (responseData.lat && responseData.lon) {
+                initializeMap(responseData.lat, responseData.lon);
+            }
+        });
+        initializeMap(50.0833, 19.9167);
+    });
+</script>
+<%- include ("_partial/_footer.ejs"); %>
